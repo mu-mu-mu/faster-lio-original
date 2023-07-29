@@ -1,0 +1,3 @@
+[submodule "pubsub_ext"]
+	path = pubsub_ext
+	url = git@github.com:mu-mu-mu/pubsub_ext.git
