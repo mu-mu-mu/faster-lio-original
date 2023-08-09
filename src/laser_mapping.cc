@@ -351,6 +351,27 @@ void LaserMapping::Run() {
     frame_num_++;
 }
 
+void LaserMapping::FPSCallBack(const sensor_msgs::PointCloud2::ConstPtr &msg) {
+    mtx_buffer_.lock();
+    Timer::Evaluate(
+        [&, this]() {
+            scan_count_++;
+            if (msg->header.stamp.toSec() < last_timestamp_lidar_) {
+                LOG(ERROR) << "lidar loop back, clear buffer";
+                lidar_buffer_.clear();
+            }
+
+            PointCloudType::Ptr ptr(new PointCloudType());
+            //preprocess_->Process(msg, ptr);
+            pcl::fromROSMsg(*msg, *ptr);
+            lidar_buffer_.push_back(ptr);
+            time_buffer_.push_back(msg->header.stamp.toSec());
+            last_timestamp_lidar_ = msg->header.stamp.toSec();
+        },
+        "Preprocess (PCL)");
+    mtx_buffer_.unlock();
+}
+
 void LaserMapping::StandardPCLCallBack(const sensor_msgs::PointCloud2::ConstPtr &msg) {
     mtx_buffer_.lock();
     Timer::Evaluate(
